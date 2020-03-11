@@ -1,35 +1,76 @@
 using System;
+using FluentFTP;
 using Gtk;
-using UI = Gtk.Builder.ObjectAttribute;
+using Porter.Widgets;
 
 namespace Porter
 {
-    class MainWindow : Window
+    class MainWindow : ApplicationWindow
     {
-        [UI] private Label _label1 = null;
-        [UI] private Button _button1 = null;
+        Gtk.Application application;
+        Stack stack;
+        ConnectionPopover cnxPopover;
+        FtpClient ftpClient;
 
-        private int _counter;
-
-        public MainWindow() : this(new Builder("MainWindow.glade")) { }
-
-        private MainWindow(Builder builder) : base(builder.GetObject("MainWindow").Handle)
+        public MainWindow(Gtk.Application application) : base(application)
         {
-            builder.Autoconnect(this);
+            this.application = application;
+
+            DefaultSize = new Gdk.Size(800, 600);
+            var header = new Header();
+            Titlebar = header;
+
+            cnxPopover = new ConnectionPopover(header.AddButton);
+            cnxPopover.connectButton.Clicked += OnConnectPopoverClicked;
+            header.AddButton.Clicked += ShowPopover;
 
             DeleteEvent += Window_DeleteEvent;
-            _button1.Clicked += Button1_Clicked;
+
+            var welcome = new Welcome("Connect", "Type a URL and press 'Enter' to\nconnect to a server.");
+            welcome.Vexpand = true;
+            // welcome.Append("list-add", "Show toast", "");
+
+            stack = new Stack();
+            stack.AddTitled(welcome, "welcome", "Welcome");
+
+            Add(stack);
         }
 
-        private void Window_DeleteEvent(object sender, DeleteEventArgs a)
+        void Window_DeleteEvent(object sender, DeleteEventArgs a)
         {
-            Application.Quit();
+            Gtk.Application.Quit();
         }
 
-        private void Button1_Clicked(object sender, EventArgs a)
+
+        void ShowPopover(object sender, EventArgs e)
         {
-            _counter++;
-            _label1.Text = "Hello World! This button has been clicked " + _counter + " time(s).";
+            cnxPopover.ShowAll();
+            cnxPopover.Popup();
+        }
+
+        async void OnConnectPopoverClicked(object sender, EventArgs e)
+        {
+            var host = cnxPopover.hostEntry.Text;
+            ftpClient = new FtpClient(host);
+
+            try
+            {
+                var profile = await ftpClient.AutoConnectAsync();
+                if (ftpClient.IsConnected)
+                {
+                    Console.WriteLine($"Connected: {ftpClient.IsConnected} to {ftpClient.ServerOS}{ftpClient.ServerType}");
+
+                }
+            }
+            catch (System.Exception err)
+            {
+                Console.WriteLine(err.Message);
+                await ftpClient.DisconnectAsync();
+            }
+            finally
+            {
+                cnxPopover.connectButton.Sensitive = true;
+            }
         }
     }
 }

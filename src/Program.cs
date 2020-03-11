@@ -10,13 +10,9 @@ namespace Porter
         {
             Application.Init();
 
-            var app = new Application("org.Porter.Porter", GLib.ApplicationFlags.None);
+            var app = new Porter.Application("org.Porter.Porter", GLib.ApplicationFlags.None);
             app.Register(GLib.Cancellable.Current);
 
-            var win = new MainWindow();
-            app.AddWindow(win);
-
-            win.Show();
             Application.Run();
         }
     }
