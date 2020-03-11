@@ -30,8 +30,11 @@ namespace Porter
             welcome.Vexpand = true;
             // welcome.Append("list-add", "Show toast", "");
 
+            FilePane filePane = new FilePane();
+
             stack = new Stack();
-            stack.AddTitled(welcome, "welcome", "Welcome");
+            stack.AddNamed(welcome, "welcome");
+            stack.AddNamed(filePane, "remote");
 
             Add(stack);
         }
@@ -50,6 +53,7 @@ namespace Porter
 
         async void OnConnectPopoverClicked(object sender, EventArgs e)
         {
+            cnxPopover.connectButton.Sensitive = false;
             var host = cnxPopover.hostEntry.Text;
             ftpClient = new FtpClient(host);
 
@@ -58,8 +62,18 @@ namespace Porter
                 var profile = await ftpClient.AutoConnectAsync();
                 if (ftpClient.IsConnected)
                 {
+                    cnxPopover.Popdown();
                     Console.WriteLine($"Connected: {ftpClient.IsConnected} to {ftpClient.ServerOS}{ftpClient.ServerType}");
 
+                    var remotePane = stack.GetChildByName("remote") as FilePane;
+                    remotePane.StartSpinner();
+                    stack.VisibleChildName = "remote";
+
+                    var listing = await ftpClient.GetListingAsync();
+
+                    remotePane.UpdateList(listing);
+
+                    remotePane.StopSpinner();
                 }
             }
             catch (System.Exception err)
