@@ -1,6 +1,7 @@
 using System;
 using FluentFTP;
 using Gtk;
+using Granite.Widgets;
 using Porter.Widgets;
 
 namespace Porter

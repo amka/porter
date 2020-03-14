@@ -6,15 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="**\*.glade" />
-    <EmbeddedResource Include="**\*.glade">
-      <LogicalName>%(Filename)%(Extension)</LogicalName>
-    </EmbeddedResource>
+    <PackageReference Include="GtkSharp" Version="3.22.25.*" />
+    <PackageReference Include="FluentFTP" Version="32.2.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="GtkSharp" Version="3.22.25.*" />
-    <PackageReference Include="FluentFTP" Version="32.2.1" />
+    <ProjectReference Include="..\Granite\Granite.csproj" />
   </ItemGroup>
 
 </Project>
